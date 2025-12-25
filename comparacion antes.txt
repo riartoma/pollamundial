@@ -1,0 +1,102 @@
+
+
+<?php  //include 'config.php'; ?>
+<php /*
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Comparación y Puntos</title>
+    <style> /* Igual */ </style>
+</head>
+<body>
+    <h1>Calcular Puntos</h1>
+    <form method="POST">
+        <button type="submit" name="calcular">Calcular para Todos</button>
+    </form>
+    
+    <?php
+    function calcularPuntos($pred_local, $pred_visit, $real_local, $real_visit) {
+        if ($pred_local == $real_local && $pred_visit == $real_visit) return 5;  // Exacto
+        
+        $pred_ganador = $pred_local > $pred_visit ? 'local' : ($pred_local < $pred_visit ? 'visit' : 'empate');
+        $real_ganador = $real_local > $real_visit ? 'local' : ($real_local < $real_visit ? 'visit' : 'empate');
+        
+        if ($pred_ganador != $real_ganador) return 0;
+        
+        if ($pred_ganador == 'empate') return 3;
+        
+        $pred_diff = abs($pred_local - $pred_visit);
+        $real_diff = abs($real_local - $real_visit);
+        $off = abs($pred_diff - $real_diff);
+        
+        if ($off == 0) return 4;
+        if ($off == 1) return 3;
+        if ($off == 2) return 2;
+        return 1;  // Ganador correcto pero off >2
+    }
+    
+    $pdo = conectarDB();
+    
+    if (isset($_POST['calcular'])) {
+        // Limpiar puntuaciones viejas
+        $pdo->query("DELETE FROM puntuaciones");
+        
+        // Obtener todos los resultados reales
+        $stmt_real = $pdo->query("SELECT partido_id, goles_local, goles_visitante FROM resultados_reales");
+        while ($real = $stmt_real->fetch()) {
+            $partido_id = $real['partido_id'];
+            
+            // Predicciones por partido
+            $stmt_pred = $pdo->prepare("SELECT usuario_id, goles_local, goles_visitante FROM predicciones WHERE partido_id = ?");
+            $stmt_pred->execute([$partido_id]);
+            while ($pred = $stmt_pred->fetch()) {
+                $puntos = calcularPuntos($pred['goles_local'], $pred['goles_visitante'], $real['goles_local'], $real['goles_visitante']);
+                
+                // Guardar puntuación
+                $stmt_punt = $pdo->prepare("INSERT INTO puntuaciones (usuario_id, partido_id, puntos) VALUES (?, ?, ?)");
+                $stmt_punt->execute([$pred['usuario_id'], $partido_id, $puntos]);
+                
+                // Actualizar total usuario
+                $pdo->prepare("UPDATE usuarios SET puntos_total = puntos_total + ? WHERE id = ?")->execute([$puntos, $pred['usuario_id']]);
+            }
+        }
+        echo "<p>Cálculo completado!</p>";
+    }
+    ?>
+    
+    <!-- Vista de Comparaciones -->
+    <h2>Puntuaciones por Usuario</h2>
+    <table>
+        <tr><th>Usuario</th><th>Partido</th><th>Predicción</th><th>Real</th><th>Puntos</th></tr>
+        <?php
+        $stmt = $pdo->query("SELECT u.nombre AS usuario, el.nombre AS local, ev.nombre AS visitante, 
+                             pr.goles_local AS pred_l, pr.goles_visitante AS pred_v, 
+                             r.goles_local AS real_l, r.goles_visitante AS real_v, pu.puntos 
+                             FROM puntuaciones pu 
+                             JOIN usuarios u ON pu.usuario_id = u.id 
+                             JOIN partidos p ON pu.partido_id = p.id 
+                             JOIN equipos el ON p.equipo_local_id = el.id 
+                             JOIN equipos ev ON p.equipo_visitante_id = ev.id 
+                             JOIN predicciones pr ON pu.usuario_id = pr.usuario_id AND pu.partido_id = pr.partido_id 
+                             JOIN resultados_reales r ON pu.partido_id = r.partido_id");
+        while ($row = $stmt->fetch()) {
+            echo "<tr><td>{$row['usuario']}</td><td>{$row['local']} vs {$row['visitante']}</td>
+                  <td>{$row['pred_l']} - {$row['pred_v']}</td><td>{$row['real_l']} - {$row['real_v']}</td><td>{$row['puntos']}</td></tr>";
+        }
+        ?>
+    </table>
+    
+    <h2>Puntos Totales</h2>
+    <table>
+        <tr><th>Usuario</th><th>Puntos Total</th></tr>
+        <?php
+        $stmt = $pdo->query("SELECT nombre, puntos_total FROM usuarios ORDER BY puntos_total DESC");
+        while ($row = $stmt->fetch()) {
+            echo "<tr><td>{$row['nombre']}</td><td>{$row['puntos_total']}</td></tr>";
+        }
+        ?>
+    </table>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<?php include 'config.php'; ?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Resultados Reales</title>
+    <style> /* Igual */ </style>
+</head>
+<body>
+    <h1>Agregar/Editar Resultados Reales</h1>
+    
+    <form method="POST">
+        <label>Partido: <select name="partido_id">
+            <!-- Similar a predicciones.php -->
+            <?php
+            $pdo = conectarDB();
+            $stmt = $pdo->query("SELECT p.id, el.nombre AS local, ev.nombre AS visitante 
+                                 FROM partidos p JOIN equipos el ON p.equipo_local_id = el.id JOIN equipos ev ON p.equipo_visitante_id = ev.id");
+            while ($row = $stmt->fetch()) {
+                echo "<option value='{$row['id']}'>{$row['local']} vs {$row['visitante']}</option>";
+            }
+            ?>
+        </select></label>
+        <label>Goles Local: <input type="number" name="goles_local" min="0" required></label>
+        <label>Goles Visitante: <input type="number" name="goles_visitante" min="0" required></label>
+        <button type="submit" name="guardar">Guardar Resultado</button>
+    </form>
+    
+    <?php
+    if (isset($_POST['guardar'])) {
+        $partido_id = $_POST['partido_id'];
+        $g_local = $_POST['goles_local'];
+        $g_visit = $_POST['goles_visitante'];
+        
+        $stmt = $pdo->prepare("INSERT INTO resultados_reales (partido_id, goles_local, goles_visitante) 
+                               VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE goles_local=?, goles_visitante=?");
+        $stmt->execute([$partido_id, $g_local, $g_visit, $g_local, $g_visit]);
+    }
+    ?>
+    
+    <!-- Vista de Resultados Reales -->
+    <h2>Resultados Reales</h2>
+    <table>
+        <tr><th>Partido</th><th>Resultado</th></tr>
+        <?php
+        $stmt = $pdo->query("SELECT p.id, el.nombre AS local, ev.nombre AS visitante, r.goles_local, r.goles_visitante 
+                             FROM resultados_reales r 
+                             JOIN partidos p ON r.partido_id = p.id 
+                             JOIN equipos el ON p.equipo_local_id = el.id 
+                             JOIN equipos ev ON p.equipo_visitante_id = ev.id");
+        while ($row = $stmt->fetch()) {
+            echo "<tr><td>{$row['local']} vs {$row['visitante']}</td><td>{$row['goles_local']} - {$row['goles_visitante']}</td></tr>";
+        }
+        ?>
+    </table>
+</body>
+</html>

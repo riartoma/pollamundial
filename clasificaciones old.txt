@@ -1,0 +1,148 @@
+<?php
+include 'config.php';
+$pdo = conectarDB();
+?>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Clasificaciones de Grupos</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 40px auto; padding: 20px; background: #f9f9f9; }
+        h1 { text-align: center; color: #333; }
+        .grupos { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+        .grupo { background: white; border-radius: 10px; padding: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .grupo h2 { text-align: center; background: #333; color: white; margin: -15px -15px 15px; padding: 10px; border-radius: 10px 10px 0 0; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #eee; padding: 8px; }
+        td { padding: 8px; text-align: center; border-bottom: 1px solid #ddd; }
+        tr:nth-child(1) td { background: #d4edda; font-weight: bold; } /* 1° clasificado */
+        tr:nth-child(2) td { background: #e2e3e5; font-weight: bold; } /* 2° clasificado */
+        tr:nth-child(3) td { background: #f8d7da; } /* 3° eliminado (en formato Mundial 2026 avanza 1° y 2° + mejores terceros, pero aquí marcamos top 2) */
+        .pts { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Clasificaciones de la Fase de Grupos</h1>
+    <div class="grupos">
+
+<?php
+$grupos = range('A', 'L');
+
+foreach ($grupos as $grupo) {
+    // Obtener todos los equipos del grupo
+    $stmt = $pdo->prepare("SELECT id, nombre FROM equipos WHERE grupo = ? ORDER BY nombre");
+    $stmt->execute([$grupo]);
+    $equipos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Inicializar estadísticas
+    $clasificacion = [];
+    foreach ($equipos as $eq) {
+        $clasificacion[$eq['id']] = [
+            'nombre' => $eq['nombre'],
+            'pj' => 0, 'pg' => 0, 'pe' => 0, 'pp' => 0,
+            'gf' => 0, 'gc' => 0, 'dg' => 0, 'pts' => 0
+        ];
+    }
+
+    // Obtener todos los partidos del grupo (ya jugados con resultado)
+    $stmt = $pdo->prepare("
+        SELECT p.equipo_local_id, p.equipo_visitante_id, r.goles_local, r.goles_visitante
+        FROM partidos p
+        JOIN equipos el ON p.equipo_local_id = el.id
+        JOIN equipos ev ON p.equipo_visitante_id = ev.id
+        JOIN resultados_reales r ON p.id = r.partido_id
+        WHERE el.grupo = ? OR ev.grupo = ?
+    ");
+    $stmt->execute([$grupo, $grupo]);
+    $partidos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Calcular estadísticas
+    foreach ($partidos as $part) {
+        $local_id = $part['equipo_local_id'];
+        $visit_id = $part['equipo_visitante_id'];
+        $gl = (int)$part['goles_local'];
+        $gv = (int)$part['goles_visitante'];
+
+        // Local
+        $clasificacion[$local_id]['pj']++;
+        $clasificacion[$local_id]['gf'] += $gl;
+        $clasificacion[$local_id]['gc'] += $gv;
+        if ($gl > $gv) {
+            $clasificacion[$local_id]['pg']++;
+            $clasificacion[$local_id]['pts'] += 3;
+        } elseif ($gl == $gv) {
+            $clasificacion[$local_id]['pe']++;
+            $clasificacion[$local_id]['pts'] += 1;
+        } else {
+            $clasificacion[$local_id]['pp']++;
+        }
+
+        // Visitante
+        $clasificacion[$visit_id]['pj']++;
+        $clasificacion[$visit_id]['gf'] += $gv;
+        $clasificacion[$visit_id]['gc'] += $gl;
+        if ($gv > $gl) {
+            $clasificacion[$visit_id]['pg']++;
+            $clasificacion[$visit_id]['pts'] += 3;
+        } elseif ($gv == $gl) {
+            $clasificacion[$visit_id]['pe']++;
+            $clasificacion[$visit_id]['pts'] += 1;
+        } else {
+            $clasificacion[$visit_id]['pp']++;
+        }
+    }
+
+    // Calcular diferencia de goles
+    foreach ($clasificacion as $id => &$data) {
+        $data['dg'] = $data['gf'] - $data['gc'];
+    }
+
+    // Convertir a array indexado para ordenar
+    $tabla = array_values($clasificacion);
+
+    // Ordenar: puntos > diff goles > goles a favor
+    usort($tabla, function($a, $b) {
+        if ($b['pts'] != $a['pts']) return $b['pts'] - $a['pts'];
+        if ($b['dg'] != $a['dg']) return $b['dg'] - $a['dg'];
+        if ($b['gf'] != $a['gf']) return $b['gf'] - $a['gf'];
+        return strcmp($a['nombre'], $b['nombre']);
+    });
+
+    // Mostrar tabla del grupo
+    echo "<div class='grupo'>";
+    echo "<h2>Grupo $grupo</h2>";
+    echo "<table>
+            <tr>
+                <th>Pos</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th>
+                <th>GF</th><th>GC</th><th>DG</th><th class='pts'>PTS</th>
+            </tr>";
+
+    foreach ($tabla as $pos => $eq) {
+        $posicion = $pos + 1;
+        echo "<tr>
+                <td>$posicion</td>
+                <td style='text-align:left;'>{$eq['nombre']}</td>
+                <td>{$eq['pj']}</td>
+                <td>{$eq['pg']}</td>
+                <td>{$eq['pe']}</td>
+                <td>{$eq['pp']}</td>
+                <td>{$eq['gf']}</td>
+                <td>{$eq['gc']}</td>
+                <td>{$eq['dg']}</td>
+                <td class='pts'>{$eq['pts']}</td>
+              </tr>";
+    }
+
+    echo "</table></div>";
+}
+?>
+
+    </div>
+    <p style="text-align:center; margin-top:40px;">
+        <a href="comparacion.php">Ver puntuaciones de usuarios</a> |
+        <a href="resultados_reales.php">Ver resultados reales</a>
+    </p>
+</body>
+</html>

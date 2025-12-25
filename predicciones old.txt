@@ -1,0 +1,63 @@
+<?php include 'config.php'; session_start(); $_SESSION['usuario_id'] = 2; // Simulado 
+
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mis Predicciones</title>
+    <style> /* Igual que arriba */ </style>
+</head>
+<body>
+    <h1>Agregar/Editar Predicciones</h1>
+    
+    <form method="POST">
+        <label>Partido: <select name="partido_id">
+            <?php
+            $pdo = conectarDB();
+            $stmt = $pdo->query("SELECT p.id, el.nombre AS local, ev.nombre AS visitante 
+                                 FROM partidos p JOIN equipos el ON p.equipo_local_id = el.id JOIN equipos ev ON p.equipo_visitante_id = ev.id");
+            while ($row = $stmt->fetch()) {
+                echo "<option value='{$row['id']}'>{$row['local']} vs {$row['visitante']}</option>";
+            }
+            ?>
+        </select></label>
+        <label>Goles Local: <input type="number" name="goles_local" min="0" required></label>
+        <label>Goles Visitante: <input type="number" name="goles_visitante" min="0" required></label>
+        <button type="submit" name="guardar">Guardar Predicción</button>
+    </form>
+    
+    <?php
+    if (isset($_POST['guardar'])) {
+        $usuario_id = $_SESSION['usuario_id'];
+        $partido_id = $_POST['partido_id'];
+        $g_local = $_POST['goles_local'];
+        $g_visit = $_POST['goles_visitante'];
+        
+        // Upsert (insert o update si existe)
+        $stmt = $pdo->prepare("INSERT INTO predicciones (usuario_id, partido_id, goles_local, goles_visitante) 
+                               VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE goles_local=?, goles_visitante=?");
+        $stmt->execute([$usuario_id, $partido_id, $g_local, $g_visit, $g_local, $g_visit]);
+    }
+    ?>
+    
+    <!-- Vista de Predicciones -->
+    <h2>Mis Predicciones</h2>
+    <table>
+        <tr><th>Partido</th><th>Predicción</th></tr>
+        <?php
+        $usuario_id = $_SESSION['usuario_id'];
+        $stmt = $pdo->prepare("SELECT p.id, el.nombre AS local, ev.nombre AS visitante, pr.goles_local, pr.goles_visitante 
+                               FROM predicciones pr 
+                               JOIN partidos p ON pr.partido_id = p.id 
+                               JOIN equipos el ON p.equipo_local_id = el.id 
+                               JOIN equipos ev ON p.equipo_visitante_id = ev.id 
+                               WHERE pr.usuario_id = ?");
+        $stmt->execute([$usuario_id]);
+        while ($row = $stmt->fetch()) {
+            echo "<tr><td>{$row['local']} vs {$row['visitante']}</td><td>{$row['goles_local']} - {$row['goles_visitante']}</td></tr>";
+        }
+        ?>
+    </table>
+</body>
+</html>
