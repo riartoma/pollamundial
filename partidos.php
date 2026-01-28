@@ -154,6 +154,7 @@ a:hover {
 </head>
 
 <body>
+<?php include 'menu.php'; ?>
 
 <h1>⚽ Gestión de Partidos</h1>
 

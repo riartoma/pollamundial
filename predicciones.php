@@ -5,6 +5,21 @@ session_start();
 /* Usuario simulado (luego puedes quitarlo y usar login real) */
 $_SESSION['usuario_id'] = 2;
 
+
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Ahora puedes verificar si la sesión está activa y usar sus variables
+if (session_status() === PHP_SESSION_ACTIVE) {
+    echo "La sesión está activa.";
+    // Puedes acceder a las variables de sesión aquí, por ejemplo:
+    // $_SESSION['usuario'] = 'Juan';
+} else {
+    echo "La sesión no está activa o está deshabilitada.";
+}
+
 $pdo = conectarDB();
 
 /* =========================
@@ -131,6 +146,7 @@ tr:nth-child(even) {
 </head>
 
 <body>
+<?php include 'menu.php'; ?>
 
 <h1>🎯 Mis Predicciones</h1>
 

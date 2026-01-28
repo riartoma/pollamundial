@@ -65,82 +65,12 @@ if (isset($_POST['calcular'])) {
 <meta charset="UTF-8">
 <title>Comparación por Usuario</title>
 
-<style>
-body {
-    font-family: Calibri, Arial, sans-serif;
-    background: linear-gradient(135deg, #1e293b, #0f172a);
-    margin: 0;
-    padding: 40px;
-    color: #fff;
-}
+    <link rel="stylesheet" href="style.css">
 
-h1 {
-    text-align: center;
-    color: #38bdf8;
-    margin-bottom: 30px;
-}
-
-.card {
-    background: #1f2937;
-    border-radius: 12px;
-    padding: 25px;
-    margin-bottom: 30px;
-    box-shadow: 0 10px 20px rgba(0,0,0,.35);
-}
-
-.usuario {
-    border-left: 6px solid #38bdf8;
-}
-
-h2 {
-    color: #38bdf8;
-    margin-top: 0;
-}
-
-button {
-    background: #38bdf8;
-    color: #0f172a;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-button:hover {
-    background: #0ea5e9;
-}
-
-.mensaje {
-    text-align: center;
-    margin-top: 15px;
-    color: #22c55e;
-    font-weight: bold;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-}
-
-th, td {
-    padding: 10px;
-    text-align: center;
-}
-
-th {
-    background: #0f172a;
-    color: #38bdf8;
-}
-
-tr:nth-child(even) {
-    background: #111827;
-}
-</style>
 </head>
 
 <body>
+<?php include 'menu.php'; ?>
 
 <h1>👥 Comparación de Predicciones por Usuario</h1>
 

@@ -21,16 +21,6 @@ $paginas = [
         "descripcion" => "Llaves y cruces de la fase final."
     ],
     [
-        "titulo" => "Generar Partidos",
-        "archivo" => "generar_partidos.php",
-        "descripcion" => "Generación automática de partidos."
-    ],
-    [
-        "titulo" => "Generar Resultados",
-        "archivo" => "generar_resultados_simulados.php",
-        "descripcion" => "Simulación de resultados deportivos."
-    ],
-    [
         "titulo" => "Listado de Partidos",
         "archivo" => "partidos.php",
         "descripcion" => "Consulta general de partidos."

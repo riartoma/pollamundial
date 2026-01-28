@@ -130,7 +130,7 @@ tr:nth-child(even) {
 
 <?php include 'menu.php'; ?>
 
-<h1><a href="index.php">Volver al index</a>
+<h1>Volver al index</a>
   ⚽ Resultados Reales  </h1>
 
 

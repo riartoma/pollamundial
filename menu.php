@@ -11,6 +11,35 @@
             <li><a href="partidos.php" <?= basename($_SERVER['PHP_SELF']) == 'partidos.php' ? 'class="active"' : '' ?>>⚽ Partidos</a></li>
             <li><a href="predicciones.php" <?= basename($_SERVER['PHP_SELF']) == 'predicciones.php' ? 'class="active"' : '' ?>>🎯 Mis Predicciones</a></li>
             <li><a href="resultados_reales.php" <?= basename($_SERVER['PHP_SELF']) == 'resultados_reales.php' ? 'class="active"' : '' ?>>📊 Resultados Reales</a></li>
+            <li> 
+                
+                <?php 
+/*
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}*/
+
+// Ahora puedes verificar si la sesión está activa y usar sus variables
+if (session_status() === PHP_SESSION_ACTIVE) {
+    $_SESSION['usuario_id'] = 2; 
+    echo "Soy el usuario: "; 
+    echo $_SESSION['usuario_id'];
+    
+    // Puedes acceder a las variables de sesión aquí, por ejemplo:
+    // $_SESSION['usuario'] = 'Juan';
+} else {
+    echo "sesión inactiva";
+}
+            
+            
+            
+            
+            ?> </li>
+            <li><a href="cerrar_sesion.php">Cerrar Sesión</a></li>
+
+
+           
+
             <!-- Agrega más enlaces aquí en el futuro, por ejemplo:
             <li><a href="ranking.php" <?= basename($_SERVER['PHP_SELF']) == 'ranking.php' ? 'class="active"' : '' ?>>🏆 Ranking</a></li>
             <li><a href="mis_puntos.php" <?= basename($_SERVER['PHP_SELF']) == 'mis_puntos.php' ? 'class="active"' : '' ?>>⭐ Mis Puntos</a></li>

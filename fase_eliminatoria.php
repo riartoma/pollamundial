@@ -8,19 +8,9 @@ $pdo = conectarDB();
 <head>
     <meta charset="UTF-8">
     <title>Fase Eliminatoria - Simulación</title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #f0f0f0; margin: 20px; }
-        h1, h2 { text-align: center; color: #333; }
-        .fase { margin: 40px auto; max-width: 1000px; }
-        .ronda { display: flex; justify-content: space-around; flex-wrap: wrap; margin: 30px 0; }
-        .partido { background: white; border-radius: 8px; padding: 15px; margin: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); min-width: 220px; text-align: center; }
-        .ganador { font-weight: bold; color: green; }
-        .penales { font-size: 0.9em; color: #666; }
-        .clasificados { background: #d4edda; padding: 15px; border-radius: 8px; margin: 20px auto; max-width: 800px; }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        th, td { padding: 8px; text-align: center; border: 1px solid #ccc; }
-        th { background: #333; color: white; }
-    </style>
+        <link rel="stylesheet" href="style.css">
+
+    
 </head>
 <body>
     <h1>Simulación Completa de la Fase Eliminatoria</h1>
