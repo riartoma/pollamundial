@@ -1,10 +1,15 @@
+<?php
+include '../config.php';
+$pdo = conectarDB();
+
+$equipos = $pdo->query("SELECT id, nombre FROM equipos ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <title>Ingreso de Partidos</title>
 
-<!-- CSS EMBEBIDO -->
 <style>
 * {
     box-sizing: border-box;
@@ -25,7 +30,7 @@ body {
 label {
     font-weight: bold;
 }
-input, button {
+select, input, button {
     width: 100%;
     padding: 10px;
     margin: 8px 0 15px;
@@ -39,35 +44,35 @@ button:hover {
     background: #000;
 }
 </style>
-
 </head>
+
 <body>
-
 <div class="card">
-    <h2>Registrar Partido</h2>
+<h2>Registrar Partido</h2>
 
-    <form>
-        <label>Equipo Local</label>
-        <input type="text" placeholder="Colombia">
+<form method="POST" action="partidos_guardar.php">
 
-        <label>Bandera Local (co, ar, br)</label>
-        <input type="text" placeholder="co">
+<label>Equipo Local</label>
+<select name="equipo_local_id" required>
+    <option value="">Seleccione</option>
+    <?php foreach($equipos as $e): ?>
+        <option value="<?= $e['id'] ?>"><?= htmlspecialchars($e['nombre']) ?></option>
+    <?php endforeach; ?>
+</select>
 
-        <label>Equipo Visitante</label>
-        <input type="text" placeholder="Brasil">
+<label>Equipo Visitante</label>
+<select name="equipo_visitante_id" required>
+    <option value="">Seleccione</option>
+    <?php foreach($equipos as $e): ?>
+        <option value="<?= $e['id'] ?>"><?= htmlspecialchars($e['nombre']) ?></option>
+    <?php endforeach; ?>
+</select>
 
-        <label>Bandera Visitante</label>
-        <input type="text" placeholder="br">
+<label>Fecha</label>
+<input type="date" name="fecha" required>
 
-        <label>Fecha</label>
-        <input type="date">
-
-        <label>Hora</label>
-        <input type="time">
-
-        <button type="submit">Guardar</button>
-    </form>
+<button type="submit">Guardar Partido</button>
+</form>
 </div>
-
 </body>
 </html>

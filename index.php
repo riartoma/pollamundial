@@ -10,11 +10,7 @@ $paginas = [
         "archivo" => "comparacion.php",
         "descripcion" => "Comparación estadística entre equipos."
     ],
-    [
-        "titulo" => "Configuración",
-        "archivo" => "config.php",
-        "descripcion" => "Parámetros generales del sistema."
-    ],
+    
     [
         "titulo" => "Fase Eliminatoria",
         "archivo" => "fase_eliminatoria.php",
@@ -112,7 +108,26 @@ $paginas = [
     </style>
 </head>
 <body>
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
+// Ahora puedes verificar si la sesión está activa y usar sus variables
+if (session_status() === PHP_SESSION_ACTIVE) {
+    $_SESSION['usuario_id'] = 2; 
+    echo "Soy el usuario: "; 
+    echo $_SESSION['usuario_id'];
+    
+    // Puedes acceder a las variables de sesión aquí, por ejemplo:
+    // $_SESSION['usuario'] = 'Juan';
+} else {
+    echo "sesión inactiva";
+    header("Location: login.php?error=1");
+
+}
+
+?>
 <h1>📊 Panel de Gestión de Partidos</h1>
 
 <div class="contenedor">
